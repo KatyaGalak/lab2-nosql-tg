@@ -45,17 +45,13 @@ public class BookingCommand extends Command {
                     .replyMarkup(Buttons.row(Buttons.button("Мои заявки", "/bookings")));
         }
         BookingDto b = client.getBooking(id);
-        SendMessage message = new SendMessage(chatId, "Заявка: " + b.getEventName()
-                + "\nID: " + b.getId()
-                + "\nДата: " + b.getEventDate()
-                + "\nВремя: " + b.getStartTime() + "–" + b.getEndTime()
-                + "\nКомната: " + b.getRoomId()
-                + "\nКатегория: " + b.getCategoryId()
-                + "\nУчастников: " + b.getParticipantCount()
-                + "\nТелефон: " + b.getContactPhone()
-                + "\nСтатус: " + b.getStatus());
+        Context ctx = stateService.get(chatId);
+        String organizationName = b.getOrganizationId() != null
+                ? client.getOrganization(b.getOrganizationId()).getName()
+                : null;
+        SendMessage message = new SendMessage(chatId, BookingFormatter.details(b, organizationName, ctx.getPersonId()));
 
-        List<InlineKeyboardButton> actions = actionsFor(b, stateService.get(chatId));
+        List<InlineKeyboardButton> actions = actionsFor(b, ctx);
         return actions.isEmpty() ? message : message.replyMarkup(Buttons.grid(actions, 2));
     }
 
@@ -71,6 +67,7 @@ public class BookingCommand extends Command {
         if (owner && b.getStatus() == BookingStatus.DRAFT) {
             actions.add(Buttons.button("Отправить на рассмотрение", "/submit " + b.getId()));
         }
+        actions.add(Buttons.button("Комментировать", "/comment " + b.getId()));
         if (owner) {
             actions.add(Buttons.button("Удалить заявку", "/cancel " + b.getId()));
         }

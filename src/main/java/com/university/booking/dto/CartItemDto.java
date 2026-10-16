@@ -16,5 +16,6 @@ public class CartItemDto {
     private LocalTime endTime;
     private int participantCount;
     private String contactPhone;
+    private String organizationId;
     private LocalDateTime addedAt;
 }

@@ -29,8 +29,10 @@ public class StartCommand extends Command {
                             Buttons.button("Команды", "/help")));
         }
         return new SendMessage(chatId,
-                "Привет! Это бот бронирования учебных помещений.\n\n"
-                        + "Для начала зарегистрируйся. Уже есть ИСУ в системе? Войди командой /login <ИСУ>.")
+                """
+                        Привет! Это бот бронирования учебных помещений.
+
+                        Для начала зарегистрируйся. Уже есть ИСУ в системе? Войди командой /login <ИСУ>.""")
                 .replyMarkup(Buttons.row(
                         Buttons.button("Регистрация", "/register"),
                         Buttons.button("Команды", "/help")));

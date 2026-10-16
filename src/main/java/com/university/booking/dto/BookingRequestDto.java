@@ -16,4 +16,5 @@ public class BookingRequestDto {
     private LocalTime endTime;
     private int participantCount;
     private String contactPhone;
+    private String organizationId;
 }

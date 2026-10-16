@@ -10,9 +10,12 @@ import com.university.booking.dto.BookingDto;
 import com.university.booking.enums.PersonRole;
 import com.university.booking.exception.AccessDeniedException;
 import com.university.booking.exception.NotRegisteredException;
+import com.university.booking.service.dialog.BookingActionDialogHandler;
 import com.university.booking.service.dialog.StateService;
 import com.university.booking.service.routing.CommandParser;
 import com.university.booking.state.Context;
+import com.university.booking.state.State;
+import com.university.booking.ui.Buttons;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,11 +43,30 @@ public class ApproveCommand extends Command {
         if (ctx.getPersonId() == null) throw new NotRegisteredException();
         if (ctx.getPersonRole() != PersonRole.ADMIN) throw new AccessDeniedException();
 
-        String id = parser.extractArguments(text);
+        String[] args = parser.extractArguments(text).split("\\s+", 2);
+        String id = args[0];
         if (id.isBlank()) {
-            return new SendMessage(chatId, "Укажи ID брони: /approve <id>");
+            return new SendMessage(chatId, "Укажи ID брони: /approve <id> [комментарий]");
         }
-        BookingDto booking = client.approveBooking(id);
-        return new SendMessage(chatId, "Бронирование одобрено!\nСтатус: " + booking.getStatus());
+        if (args.length < 2) {
+            // Как и при отклонении, сначала спрашиваем комментарий: он попадёт в историю и в комментарии заявки.
+            stateService.updateContext(chatId, c -> {
+                c.setPendingBookingId(id);
+                c.setState(State.APPROVE_COMMENT);
+            });
+            return new SendMessage(chatId, "Добавь комментарий для автора заявки (например, где взять ключ) "
+                    + "или нажми «Без комментария»:")
+                    .replyMarkup(Buttons.row(
+                            Buttons.button("Без комментария", BookingActionDialogHandler.NO_COMMENT),
+                            Buttons.button("Отмена", "/cancel")));
+        }
+        return approve(chatId, id, args[1]);
+    }
+
+    public SendMessage approve(long chatId, String id, String comment) {
+        BookingDto booking = client.approveBooking(id, comment);
+        return new SendMessage(chatId, "Бронирование одобрено!\nСтатус: " + booking.getStatus()
+                + (comment != null ? "\nКомментарий: " + comment : ""))
+                .replyMarkup(Buttons.row(Buttons.button("Открыть заявку", "/booking " + booking.getId())));
     }
 }

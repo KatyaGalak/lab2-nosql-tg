@@ -20,7 +20,9 @@ public class Context {
     private String regMiddleName;
 
     private String bookRoomId;
+    private Integer bookRoomCapacity;
     private String bookCategoryId;
+    private String bookOrganizationId;
     private String bookEventName;
     private LocalDate bookDate;
     private LocalTime bookStartTime;
@@ -28,15 +30,20 @@ public class Context {
     private Integer bookParticipants;
     private String bookPhone;
 
+    private String pendingBookingId;
+
     public void resetBooking() {
         bookRoomId = null;
+        bookRoomCapacity = null;
         bookCategoryId = null;
+        bookOrganizationId = null;
         bookEventName = null;
         bookDate = null;
         bookStartTime = null;
         bookEndTime = null;
         bookParticipants = null;
         bookPhone = null;
+        pendingBookingId = null;
     }
 
     public void resetRegister() {

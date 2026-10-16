@@ -2,6 +2,7 @@ package com.university.booking.configuration;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.university.booking.client.PersonIdContext;
+import java.time.Clock;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,11 @@ public class TelegramConfiguration {
     @Bean
     public TelegramBot telegramBot(BotProperties properties) {
         return new TelegramBot(properties.getToken());
+    }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
     }
 
     @Bean

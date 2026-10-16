@@ -4,12 +4,15 @@ import com.university.booking.enums.BookingStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
 public class BookingDto {
     private String id;
     private String personId;
+    private String organizationId;
     private String roomId;
     private String categoryId;
     private String eventName;
@@ -22,4 +25,8 @@ public class BookingDto {
     private String processedBy;
     private LocalDateTime createdAt;
     private LocalDateTime processedAt;
+    private List<CommentDto> comments;
+    private List<HistoryEntryDto> history;
+
+    private Map<String, String> personNames;
 }

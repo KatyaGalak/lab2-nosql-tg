@@ -1,12 +1,18 @@
 package com.university.booking.client;
 
 import com.university.booking.dto.BookingDto;
+import com.university.booking.dto.BookingPageDto;
+import com.university.booking.enums.BookingStatus;
 import com.university.booking.dto.CartDto;
 import com.university.booking.dto.BookingRequestDto;
 import com.university.booking.dto.CategoryDto;
+import com.university.booking.dto.CommentRequestDto;
 import com.university.booking.dto.ErrorResponseDto;
+import com.university.booking.dto.OrganizationDto;
+import com.university.booking.dto.OrganizationStatsReportDto;
 import com.university.booking.dto.PersonCreateRequest;
 import com.university.booking.dto.PersonDto;
+import com.university.booking.dto.ReasonRequestDto;
 import com.university.booking.dto.RoomDto;
 import com.university.booking.dto.RoomScheduleDto;
 import com.university.booking.exception.AccessDeniedException;
@@ -22,6 +28,7 @@ import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -55,6 +62,16 @@ public class BackendClient {
                 baseUrl + "/api/rooms/" + id + "/schedule?date=" + date, RoomScheduleDto.class)));
     }
 
+    public BookingPageDto searchBookings(String personId, BookingStatus status, int page, int size) {
+        StringBuilder url = new StringBuilder(baseUrl + "/api/bookings/search?sort=createdAt&direction=desc")
+                .append("&page=").append(page)
+                .append("&size=").append(size);
+        if (personId != null) url.append("&personId=").append(personId);
+        if (status != null) url.append("&status=").append(status.name());
+        return call("GET /api/bookings/search", null,
+                () -> requireBody(restTemplate.getForObject(url.toString(), BookingPageDto.class)));
+    }
+
     public List<BookingDto> getBookings() {
         return call("GET /api/bookings", null,
                 () -> asList(restTemplate.getForObject(baseUrl + "/api/bookings", BookingDto[].class)));
@@ -75,14 +92,40 @@ public class BackendClient {
                 baseUrl + "/api/bookings/" + id + "/submit", HttpMethod.PUT, null, BookingDto.class).getBody()));
     }
 
-    public BookingDto approveBooking(String id) {
+    public BookingDto approveBooking(String id, String reason) {
         return call("PUT /api/bookings/" + id + "/approve", id, () -> requireBody(restTemplate.exchange(
-                baseUrl + "/api/bookings/" + id + "/approve", HttpMethod.PUT, null, BookingDto.class).getBody()));
+                baseUrl + "/api/bookings/" + id + "/approve", HttpMethod.PUT, reasonBody(reason), BookingDto.class).getBody()));
     }
 
-    public BookingDto rejectBooking(String id) {
+    public BookingDto rejectBooking(String id, String reason) {
         return call("PUT /api/bookings/" + id + "/reject", id, () -> requireBody(restTemplate.exchange(
-                baseUrl + "/api/bookings/" + id + "/reject", HttpMethod.PUT, null, BookingDto.class).getBody()));
+                baseUrl + "/api/bookings/" + id + "/reject", HttpMethod.PUT, reasonBody(reason), BookingDto.class).getBody()));
+    }
+
+    public BookingDto addComment(String id, String text) {
+        return call("POST /api/bookings/" + id + "/comments", id, () -> requireBody(restTemplate.postForObject(
+                baseUrl + "/api/bookings/" + id + "/comments", new CommentRequestDto(text), BookingDto.class)));
+    }
+
+    public List<OrganizationDto> getOrganizations() {
+        return call("GET /api/organizations", null,
+                () -> asList(restTemplate.getForObject(baseUrl + "/api/organizations", OrganizationDto[].class)));
+    }
+
+    public OrganizationDto getOrganization(String id) {
+        return call("GET /api/organizations/" + id, id,
+                () -> requireBody(restTemplate.getForObject(baseUrl + "/api/organizations/" + id, OrganizationDto.class)));
+    }
+
+    public OrganizationStatsReportDto getOrganizationStats(LocalDate from, LocalDate to) {
+        StringBuilder url = new StringBuilder(baseUrl + "/api/analytics/organizations");
+        if (from != null || to != null) {
+            url.append("?");
+            if (from != null) url.append("from=").append(from).append("&");
+            if (to != null) url.append("to=").append(to);
+        }
+        return call("GET /api/analytics/organizations", null,
+                () -> requireBody(restTemplate.getForObject(url.toString(), OrganizationStatsReportDto.class)));
     }
 
     public void deleteBooking(String id) {
@@ -156,6 +199,10 @@ public class BackendClient {
             log.atError().addKeyValue("endpoint", endpoint).setCause(e).log("backend request failed");
             throw new BackendException();
         }
+    }
+
+    private static HttpEntity<ReasonRequestDto> reasonBody(String reason) {
+        return reason == null || reason.isBlank() ? null : new HttpEntity<>(new ReasonRequestDto(reason));
     }
 
     private String errorMessage(HttpStatusCodeException e) {

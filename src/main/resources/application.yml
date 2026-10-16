@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: lab1-tg
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+bot:
+  token: ${TELEGRAM_BOT_TOKEN}
+
+backend:
+  url: ${BACKEND_URL:http://localhost:8080}
+
+server:
+  port: 8081
+
+logging:
+  structured:
+    format:
+      console: logstash
+  level:
+    com.university.booking: DEBUG

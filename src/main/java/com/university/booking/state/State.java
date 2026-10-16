@@ -1,0 +1,17 @@
+package com.university.booking.state;
+
+public enum State {
+    DEFAULT,
+    REGISTER_LAST_NAME,
+    REGISTER_FIRST_NAME,
+    REGISTER_MIDDLE_NAME,
+    REGISTER_ROLE,
+    BOOK_ROOM,
+    BOOK_CATEGORY,
+    BOOK_EVENT_NAME,
+    BOOK_DATE,
+    BOOK_START_TIME,
+    BOOK_END_TIME,
+    BOOK_PARTICIPANTS,
+    BOOK_PHONE
+}
